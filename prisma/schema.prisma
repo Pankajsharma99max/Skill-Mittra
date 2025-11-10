@@ -1,0 +1,122 @@
+// Prisma schema for MySQL
+// Run: npm run prisma:generate && npm run prisma:migrate
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role     @default(Student)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+}
+
+enum Role {
+  Student
+  Admin
+  SuperAdmin
+}
+
+model Product {
+  id          BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  title       String
+  category    ProductCategory
+  price       Decimal          @db.Decimal(10, 2)
+  stock       Int              @default(0)
+  description String?
+  images      ProductImage[]
+  contents    ProductContent[]
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+}
+
+enum ProductCategory {
+  Kits
+  Components
+  AddOnModules
+}
+
+model ProductImage {
+  id        BigInt  @id @default(autoincrement()) @db.UnsignedBigInt
+  url       String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId BigInt  @db.UnsignedBigInt
+}
+
+model ProductContent {
+  id        BigInt  @id @default(autoincrement()) @db.UnsignedBigInt
+  item      String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId BigInt  @db.UnsignedBigInt
+}
+
+model Project {
+  id         BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  title      String
+  difficulty Difficulty
+  codeURL    String?     @map("code_url")
+  videoURL   String?     @map("video_url")
+  steps      ProjectStep[]
+  required   ProjectRequiredComponent[]
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+}
+
+enum Difficulty {
+  Beginner
+  Intermediate
+  Advanced
+}
+
+model ProjectStep {
+  id        BigInt  @id @default(autoincrement()) @db.UnsignedBigInt
+  stepText  String  @map("step_text")
+  stepNo    Int     @map("step_no")
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId BigInt  @db.UnsignedBigInt
+}
+
+model ProjectRequiredComponent {
+  id        BigInt  @id @default(autoincrement()) @db.UnsignedBigInt
+  component String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId BigInt  @db.UnsignedBigInt
+}
+
+model Resource {
+  id          BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  title       String
+  category    String
+  contentHTML String?  @map("content_html")
+  pdfURL      String?  @map("pdf_url")
+  videoURL    String?  @map("video_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+}
+
+model WorkshopRequest {
+  id          BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  schoolName  String   @map("school_name")
+  contactName String   @map("contact_name")
+  phone       String
+  city        String
+  status      WorkshopStatus @default(Pending)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+}
+
+enum WorkshopStatus {
+  Pending
+  Approved
+  Scheduled
+  Rejected
+}
